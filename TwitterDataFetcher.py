@@ -4,23 +4,20 @@ import requests
 import time
 import os
 
-from numpy.f2py.auxfuncs import throw_error
 from dotenv import load_dotenv
+load_dotenv()
 
 MAX_TWEET_COUNT = 3
 MIN_REPLY_COUNT = 300
 MIN_LIKES_COUNT = 1000
 MAX_RUNTIME = 20
 
-all_tweets_id = []
+all_tweet_ids = []
 url = "https://apis.datura.ai/twitter"
 all_comments = []
 comments = []
 
 start_time = time.time()
-
-#conversation_id:
-#Search for most influential accounts
 
 headers = {
         "Authorization": os.getenv("API_KEY"),
@@ -29,7 +26,6 @@ headers = {
 
 def find_tweet():
     tweets_id = []
-    original_post = {}
     main_posts = []
     payload = {
         "query": "(#Bitcoin OR #Ethereum OR #Crypto OR #Web3 OR #DeFi OR #NFT OR #Blockchain) OR Bitcoin OR Ethereum OR Crypto OR Web3 OR DeFi OR NFT OR Blockchain",
@@ -93,12 +89,11 @@ def parse_tweet(cid, pcomments):
 #MAIN#
 ########################
 
-while len(all_tweets_id) < MAX_TWEET_COUNT:
-    all_tweets_id, comments = find_tweet()
+while len(all_tweet_ids) < MAX_TWEET_COUNT:
+    all_tweet_ids, comments = find_tweet()
     if time.time() - start_time > MAX_RUNTIME:
         raise Exception("Stopping program due to runtime limit")
 
 for i in range(MAX_TWEET_COUNT):
-    all_comments.append(parse_tweet(all_tweets_id[i], comments[i]))
+    all_comments.append(parse_tweet(all_tweet_ids[i], comments[i]))
 
-print(all_comments)
