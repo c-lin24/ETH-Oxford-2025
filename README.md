@@ -9,9 +9,6 @@ mezzanine)
 - It should run on Linux and WSL, you can use docker to make it easy to deploy
 - Clear documentation of the analysis methodology and scoring algorithms, and a video demonstration of the system in action
 
-## Features:
-Features here
-
 ## Data Pipeline:
 - High-engagement tweets are retrieved via the Datura Basic Twitter Search API
 - Tweets provide the conversation_ids needed to retrieve the tweeted replies
