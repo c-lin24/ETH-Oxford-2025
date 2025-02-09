@@ -74,6 +74,10 @@ def relation_score(urls, summary):
 
         list_of_articles.append((article.url, int(relatability_text)))
 
+    if len(list_of_articles) == 0:
+        print("The list is empty. No relevant articles found.")
+        return "", 0
+
     return max(list_of_articles, key=lambda x: x[1])
 
 
@@ -102,13 +106,32 @@ def extract_keywords(text):
 
 
 def list_to_query(raw_string_list):
-    extracted = extract_keywords(raw_string_list)
+    extracted = find_related_keywords(extract_keywords(raw_string_list))
     extracted1 = []
     for s in extracted:
         extracted1.append(s.replace(" ", ""))
     return " OR ".join(extracted1)
 
 
+def find_related_keywords(raw_string_list):
+    key_keywords_all = client.chat.completions.create(
+        model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+        messages=[{"role": "user", "content": f"""I will be giving you many keywords and I want you to extract the keywords
+                                                  that are related to cryptocurrencies. People, coins, companies and
+                                                  anything related should remain. Anything that has an impact on the values
+                                                  of crypto coins, including political figures, should remain.
+                                                  I want at most 10 keywords, so choose
+                                                  the ones that are most general.
+                                                  
+                                                  I want you to print out all of the keywords with a comma in between.
+                                                  I want you to not print ANYTHING else on the output other than the keywords.
+                                                  
+                                                  Here are the keywords: {raw_string_list}"""}]
+    )
+
+    key_keywords_str = key_keywords_all.choices[0].message.content
+    key_keywords = key_keywords_str.split(',')
+    return key_keywords
 
 
 

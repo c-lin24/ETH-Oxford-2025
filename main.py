@@ -5,8 +5,8 @@ from SummariseDebateData import debate_content, responses, total_likes_list
 # urls = crypto_news['url']
 
 for i in range(len(debate_content)):
-    print(list_to_query(responses[i]))
-    crypto_news = get_crypto_news(list_to_query(responses[i]))
+    keywords = list_to_query(responses[i])
+    crypto_news = get_crypto_news(keywords)
     urls = crypto_news['url']
 
     print(responses[i])
@@ -14,7 +14,7 @@ for i in range(len(debate_content)):
     print("\n")
 
     relation_res = relation_score(urls, responses[i])
-    if relation_res[1] < 70: print("No relevant event found.")
+    if relation_res[1] < 85: print("No relevant event found.")
     else:
         print(summariseURL(relation_res[0]))
 
