@@ -22,6 +22,6 @@ mezzanine)
 - Debate summary, debate metrics and article summary are output
 
 ## 🔑 Environment Variables
-`API_KEY_NEWSAPI` = NewsAPI API key
-`API_KEY_LLAMA` = Meta Llama API key
-`API_KEY` = Datura Twitter API key
+`API_KEY_NEWSAPI` = NewsAPI API key<br>
+`API_KEY_LLAMA` = Meta Llama API key<br>
+`API_KEY` = Datura Twitter API key<br>
