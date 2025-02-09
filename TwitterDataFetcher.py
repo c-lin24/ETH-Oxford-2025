@@ -4,7 +4,6 @@ import requests
 import time
 import os
 import math
-import numpy as np
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -110,5 +109,3 @@ while len(all_tweet_ids) < MAX_TWEET_COUNT:
 for i in range(MAX_TWEET_COUNT):
     all_comments.append(parse_tweet(all_tweet_ids[i], comments[i]))
     influence_scores.append(calculate_influence_score(all_comments[i][0]["main_followers_count"], all_comments[i][0]["main_like_count"], comment_counts[i]))
-
-print(influence_scores)
