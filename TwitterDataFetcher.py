@@ -3,6 +3,8 @@ import re
 import requests
 import time
 import os
+import math
+import numpy as np
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -10,12 +12,14 @@ load_dotenv()
 MAX_TWEET_COUNT = 3
 MIN_REPLY_COUNT = 300
 MIN_LIKES_COUNT = 1000
-MAX_RUNTIME = 20
+MAX_RUNTIME = 300
 
 all_tweet_ids = []
 url = "https://apis.datura.ai/twitter"
 all_comments = []
 comments = []
+comment_counts = []
+influence_scores = []
 
 start_time = time.time()
 
@@ -27,6 +31,8 @@ headers = {
 def find_tweet():
     tweets_id = []
     main_posts = []
+    comment_count = []
+
     payload = {
         "query": "(#Bitcoin OR #Ethereum OR #Crypto OR #Web3 OR #DeFi OR #NFT OR #Blockchain) OR Bitcoin OR Ethereum OR Crypto OR Web3 OR DeFi OR NFT OR Blockchain",
         "sort": "Top",
@@ -36,7 +42,7 @@ def find_tweet():
         "verified": True,
         "blue_verified": True,
         "min_replies": 100,
-        "min_followers": 100,  # Adjust as needed
+        "min_followers": 100,
         "min_retweets": 100,
         "min_likes": 500
     }
@@ -54,11 +60,12 @@ def find_tweet():
 
             tweets_id.append(data["id"])
             main_posts.append(original_post)
+            comment_count.append(data["reply_count"])
 
         if len(tweets_id) >= MAX_TWEET_COUNT:
             break
 
-    return tweets_id, main_posts
+    return tweets_id, main_posts, comment_count
 
 
 def parse_tweet(cid, pcomments):
@@ -84,16 +91,24 @@ def parse_tweet(cid, pcomments):
     pcomments[1:] = sorted(pcomments[1:], key=lambda x: x["reply_like_count"], reverse=True)
     return pcomments
 
+def calculate_influence_score(followers, likes, comment):
+    alpha = 2.0
+    beta = 1.2
 
-########################
-#MAIN#
-########################
+    log_followers = math.log2(1 + followers)
+    influence_score = alpha * log_followers + beta * (likes + comment)
+    return round(influence_score/100, 2)
+
 
 while len(all_tweet_ids) < MAX_TWEET_COUNT:
-    all_tweet_ids, comments = find_tweet()
+    all_tweet_ids, comments, comment_counts = find_tweet()
+
     if time.time() - start_time > MAX_RUNTIME:
         raise Exception("Stopping program due to runtime limit")
 
+
 for i in range(MAX_TWEET_COUNT):
     all_comments.append(parse_tweet(all_tweet_ids[i], comments[i]))
+    influence_scores.append(calculate_influence_score(all_comments[i][0]["main_followers_count"], all_comments[i][0]["main_like_count"], comment_counts[i]))
 
+print(influence_scores)
