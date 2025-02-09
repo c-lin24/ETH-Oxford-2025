@@ -13,15 +13,15 @@ mezzanine)
 Features here
 
 ## Data Pipeline:
-- Most influential, trending tweets are retrieved via the Datura Basic Twitter Search API
-- These tweets provide the conversation_ids needed to retrieve the tweeted replies
-- The main tweet and tweeted replies comprise the debate information - text body, username, like count, etc.
-- This debate information is then fed into the LLama 3.3 70B model alongside a prompt to generate the debate summary
-- The debate information is also processed to extract key words by a method from the Rake library
-- The key words are then supplied into the Llama model to filter for only crypto-related keywords
-- The filtered key words are then passed to the NewsAPI and the 15 most relevant articles are fetched
-- The articles, alongside the summary debate, are then supplied into the LLama model to generate an approximate relation score
-- The article with the greatest relation score is supplied into the Llama model to summarise
-- The debate summary, debate metrics and article summary are output
+- High-engagement tweets are retrieved via the Datura Basic Twitter Search API
+- Tweets provide the conversation_ids needed to retrieve the tweeted replies
+- Main tweet and tweeted replies comprise the debate information - text body, username, like count, etc.
+- Debate information is then fed into the LLama 3.3 70B model alongside a prompt to generate the debate summary
+- Debate summary is then processed to extract key words by a method from the Rake library
+- Key words are then supplied into the Llama model to filter for only crypto-related keywords
+- Filtered key words are then passed to the NewsAPI and the 15 most relevant articles are fetched
+- Articles, alongside the summary debate, are then supplied into the LLama model to generate an approximate relavance score
+- Article with the greatest relevance score is supplied into the Llama model to summarise
+- Debate summary, debate metrics and article summary are output
 
 
