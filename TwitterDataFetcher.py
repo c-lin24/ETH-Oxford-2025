@@ -4,14 +4,22 @@ import requests
 import time
 import os
 import math
+from datetime import datetime
+from together import Together
+
 
 from dotenv import load_dotenv
 load_dotenv()
+
+client = Together(api_key=os.getenv("PUBLIC_KEY_LLAMA"))
 
 MAX_TWEET_COUNT = 3
 MIN_REPLY_COUNT = 300
 MIN_LIKES_COUNT = 1000
 MAX_RUNTIME = 300
+DEFAULT_QUERY = "(#Bitcoin OR #Ethereum OR #Crypto OR #Web3 OR #DeFi OR #NFT OR #Blockchain) OR Bitcoin OR Ethereum OR Crypto OR Web3 OR DeFi OR NFT OR Blockchain"
+DEFAULT_START_DATE = "2023-01-01"
+DEFAULT_END_DATE = "2025-02-09"
 
 all_tweet_ids = []
 url = "https://apis.datura.ai/twitter"
@@ -27,16 +35,16 @@ headers = {
         "Content-Type": "application/json"
 }
 
-def find_tweet():
+def find_tweet(pstart_date=DEFAULT_START_DATE, pend_date=DEFAULT_END_DATE, query=DEFAULT_QUERY):
     tweets_id = []
     main_posts = []
     comment_count = []
 
     payload = {
-        "query": "(#Bitcoin OR #Ethereum OR #Crypto OR #Web3 OR #DeFi OR #NFT OR #Blockchain) OR Bitcoin OR Ethereum OR Crypto OR Web3 OR DeFi OR NFT OR Blockchain",
+        "query": query,
         "sort": "Top",
-        "start_date": "2024-06-01",
-        "end_date": "2025-02-01",
+        "start_date": pstart_date,
+        "end_date": pend_date,
         "lang": "en",
         "verified": True,
         "blue_verified": True,
@@ -67,12 +75,12 @@ def find_tweet():
     return tweets_id, main_posts, comment_count
 
 
-def parse_tweet(cid, pcomments):
+def parse_tweet(cid, pcomments, pstart_date=DEFAULT_START_DATE, pend_date=DEFAULT_END_DATE):
     payload2 = {
         "query": "conversation_id:" + cid,
         "sort": "Top",
-        "start_date": "2024-06-01",
-        "end_date": "2025-02-01",
+        "start_date": pstart_date,
+        "end_date": pend_date,
         "lang": "en"
     }
 
@@ -99,13 +107,68 @@ def calculate_influence_score(followers, likes, comment):
     return round(influence_score/100, 2)
 
 
-while len(all_tweet_ids) < MAX_TWEET_COUNT:
-    all_tweet_ids, comments, comment_counts = find_tweet()
+choice = 0
+while choice != 1 and choice != 2:
+    choice = int(input("1. General crypto information \n2. Customised search \nPlease enter an option (1 or 2): "))
+    if choice == 1:
+        while len(all_tweet_ids) < MAX_TWEET_COUNT:
+            all_tweet_ids, comments, comment_counts = find_tweet()
 
-    if time.time() - start_time > MAX_RUNTIME:
-        raise Exception("Stopping program due to runtime limit")
+            if time.time() - start_time > MAX_RUNTIME:
+                raise Exception("Stopping program due to runtime limit")
+
+        for i in range(MAX_TWEET_COUNT):
+            all_comments.append(parse_tweet(all_tweet_ids[i], comments[i]))
+            influence_scores.append(calculate_influence_score(all_comments[i][0]["main_followers_count"],
+                                                              all_comments[i][0]["main_like_count"], comment_counts[i]))
+
+    elif choice == 2:
+        keyword_choice = input("Please enter a word(s) or phrase(s) to search: ")
+        response = client.chat.completions.create(
+            model="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+            messages=[
+                {"role": "user", "content": f"""Find a list of upto 10 related words to the following text:
+                                                {keyword_choice}. The words must all be preceded by # and
+                                                separated by OR, followed by OR, and then do the same disjunction of
+                                                 words without the preceding #s. And your
+                                                 output should be this entire disjunction of words only"""}]
+        )
+        query = response.choices[0].message.content
+
+        print("Please enter a time range to filter the tweets.")
+        while True:
+            try:
+                start_date_choice = input("Enter a start date (yyyy-mm-dd): ")
+                end_date_choice = input("Enter an end date (yyyy-mm-dd): ")
+
+                start_date = datetime.strptime(start_date_choice, "%Y-%m-%d")
+                end_date = datetime.strptime(end_date_choice, "%Y-%m-%d")
+
+                if start_date > end_date:
+                    print("Error: Start date must be before the end date. Try again.")
+                    continue
+                break
+
+            except ValueError:
+                print("Invalid date format. Please enter dates in YYYY-MM-DD format.")
 
 
-for i in range(MAX_TWEET_COUNT):
-    all_comments.append(parse_tweet(all_tweet_ids[i], comments[i]))
-    influence_scores.append(calculate_influence_score(all_comments[i][0]["main_followers_count"], all_comments[i][0]["main_like_count"], comment_counts[i]))
+        while len(all_tweet_ids) < MAX_TWEET_COUNT:
+            all_tweet_ids, comments, comment_counts = find_tweet(start_date_choice, end_date_choice, query)
+
+            if time.time() - start_time > MAX_RUNTIME:
+                raise Exception("Stopping program. Could not find tweet in reasonable time.")
+
+        for i in range(MAX_TWEET_COUNT):
+            all_comments.append(parse_tweet(all_tweet_ids[i], comments[i], start_date_choice, end_date_choice))
+            influence_scores.append(calculate_influence_score(all_comments[i][0]["main_followers_count"],
+                                                              all_comments[i][0]["main_like_count"], comment_counts[i]))
+
+
+    else:
+        print("\nPlease enter either 1 or 2")
+        choice = int(input("1. General crypto information \n2. Customised search \nPlease enter an option (1 or 2): "))
+
+#for i in range(MAX_TWEET_COUNT):
+#    all_comments.append(parse_tweet(all_tweet_ids[i], comments[i]))
+#    influence_scores.append(calculate_influence_score(all_comments[i][0]["main_followers_count"], all_comments[i][0]["main_like_count"], comment_counts[i]))
