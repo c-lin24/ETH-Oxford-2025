@@ -53,12 +53,13 @@ def relation_score(urls, summary):
 
     for url in urls:
         article = Article(url, headers=headers)
+        print("#", end='')
 
         try:
             article.download()
             article.parse()
         except Exception as e:
-            print(f"Skipping article: {url} (Error: {e})")
+            # print(f"Skipping article: {url} (Error: {e})")
             continue
 
         conversation_history.append({"role": "user", "content": f"An article is given: {article.text[:1500]}"})
@@ -68,11 +69,13 @@ def relation_score(urls, summary):
             messages=conversation_history,
         )
         relatability_text = relatability.choices[0].message.content
-        print(relatability_text)
+        # print(relatability_text)
 
         conversation_history.append({"role": "assistant", "content": relatability_text})
 
         list_of_articles.append((article.url, int(relatability_text)))
+
+    print("$\n")
 
     if len(list_of_articles) == 0:
         print("The list is empty. No relevant articles found.")
@@ -88,7 +91,7 @@ def summariseURL(url):
         article.download()
         article.parse()
     except Exception as e:
-        print(f"Skipping article: {url} (Error: {e})")
+        # print(f"Skipping article: {url} (Error: {e})")
         return None
 
     summary = client.chat.completions.create(
@@ -132,7 +135,3 @@ def find_related_keywords(raw_string_list):
     key_keywords_str = key_keywords_all.choices[0].message.content
     key_keywords = key_keywords_str.split(',')
     return key_keywords
-
-
-
-print(list_to_query("What has the decentralised blockchain model to our society with the president Donald Trump is quite atrocious to be frank"))

@@ -12,8 +12,7 @@ for i in range(len(debate_content)):
 
     print(responses[i])
     print("Total like count: " + str(total_likes_list[i]))
-    print("Influence score: " + str(influence_scores[i]))
-    print("\n")
+    print("Influence score: " + str(influence_scores[i]) + "\n")
 
     relation_res = relation_score(urls, responses[i])
     if relation_res[1] < 85: print("No relevant event found.")
