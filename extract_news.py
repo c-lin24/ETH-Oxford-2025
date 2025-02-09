@@ -22,7 +22,7 @@ def get_crypto_news(query):
         "apiKey": API_KEY,
         "q": query,
         "language": "en",
-        "sortBy": "popularity",
+        "sortBy": "relevancy",
     }
 
     response = requests.get(url, params=params)
